@@ -1,4 +1,4 @@
-package com.example.y_foo
+package com.yfoo
 
 import org.junit.Test
 

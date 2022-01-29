@@ -1,4 +1,4 @@
-package com.example.y_foo
+package com.yfoo
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
