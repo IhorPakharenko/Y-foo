@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Y-foo</string>
+    <string name="swipe">Swipe</string>
+    <string name="profile">Profile</string>
+    <string name="liked">Liked</string>
+    <string name="chat">Chat</string>
+    <string name="upgrade_now">Upgrade now</string>
 </resources>
