@@ -5,4 +5,7 @@
     <string name="liked">Liked</string>
     <string name="chat">Chat</string>
     <string name="upgrade_now">Upgrade now</string>
+    <string name="settings">Settings</string>
+    <string name="like">Like</string>
+    <string name="dislike">Dislike</string>
 </resources>

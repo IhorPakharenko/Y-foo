@@ -5,6 +5,7 @@ import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
+//TODO change colors to replicate Badoo and Tinder's white styles more
 private val LightThemeColors = lightColors(
     primary = Purple400,
     primaryVariant = Purple600,

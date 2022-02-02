@@ -2,27 +2,28 @@ package com.yfoo.presentation.main
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.yfoo.R
 import com.yfoo.presentation.YfooStatusBar
-import com.yfoo.presentation.liked.LikedScreen
-import com.yfoo.presentation.swipe.SwipeScreen
-import com.yfoo.presentation.swipe.SwipeViewModel
 import com.yfoo.presentation.theme.YfooTheme
 import com.yfoo.presentation.utils.WindowSize
 import kotlinx.coroutines.flow.collect
@@ -76,18 +77,11 @@ fun YfooApp(
 
     YfooTheme {
         YfooStatusBar()
-        Scaffold(
-            bottomBar = {
-                if (isCompactScreen) {
-                    AppBottomNavigation(
-                        screens = mainScreens,
-                        currentRoute = currentRoute,
-                        onRouteClick = navigationClickHandler,
-                    )
-                }
-            },
-        ) {
-            Row(Modifier.fillMaxSize()) {
+        Column {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)) {
                 if (!isCompactScreen) {
                     AppNavigationRail(
                         screens = mainScreens,
@@ -101,6 +95,13 @@ fun YfooApp(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
+                )
+            }
+            if (isCompactScreen) {
+                AppBottomNavigation(
+                    screens = mainScreens,
+                    currentRoute = currentRoute,
+                    onRouteClick = navigationClickHandler,
                 )
             }
         }

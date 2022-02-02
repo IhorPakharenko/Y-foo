@@ -1,16 +1,13 @@
 package com.yfoo.presentation.main
 
-import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.yfoo.R
 import com.yfoo.presentation.chat.ChatScreen
 import com.yfoo.presentation.liked.LikedScreen
 import com.yfoo.presentation.profile.ProfileScreen
@@ -38,7 +35,7 @@ fun YfooNavGraph(
     AnimatedNavHost(navController, startDestination, modifier) {
         composable(MainScreen.Swipe.route) {
             val viewModel: SwipeViewModel = hiltViewModel()
-            SwipeScreen(viewModel)
+            SwipeScreen(viewModel, windowSize)
         }
         composable(MainScreen.Liked.route) {
             LikedScreen()
