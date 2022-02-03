@@ -1,6 +1,7 @@
 buildscript {
     dependencies {
-        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.38.1'
+        //TODO synchronize this hilt version with hilt version from :app module
+        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.40.5'
     }
 }
 plugins {
