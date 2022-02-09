@@ -4,5 +4,5 @@ import kotlinx.datetime.Instant
 
 data class ChatMessage(
     val message: String,
-    val time: Instant,
+    val timeSent: Instant,
 )

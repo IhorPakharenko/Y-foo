@@ -1,6 +1,6 @@
 package com.yfoo.domain
 
-data class Card(
+data class ProviderSettings(
     val provider: ImageProvider,
-    val source: ImageSource,
+    val isEnabled: Boolean,
 )

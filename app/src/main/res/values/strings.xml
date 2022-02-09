@@ -7,5 +7,15 @@
     <string name="upgrade_now">Upgrade now</string>
     <string name="settings">Settings</string>
     <string name="like">Like</string>
-    <string name="dislike">Dislike</string>
+    <string name="nope">Nope</string>
+    <string name="image_of_anime_character">Image of an anime character</string>
+    <string name="image_of_cat">Image of a cat</string>
+    <string name="image_is_loading">Image is loading…</string>
+    <string name="check_your_internet">Check your Internet connection</string>
+    <string name="try_again_later">Try again later</string>
+    <string name="undo_last_choice">Undo last choice</string>
+    <string name="by_site">By %s</string>
+    <string name="this_waifu_does_not_exist_site_name">This Waifu Does Not Exist</string>
+    <string name="this_anime_does_not_exist_site_name">This Anime Does Not Exist</string>
+    <string name="this_cat_does_not_exist_site_name">This Cat Does Not Exist</string>
 </resources>
