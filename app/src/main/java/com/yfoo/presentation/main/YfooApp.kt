@@ -47,10 +47,10 @@ fun YfooApp(
     val navigationClickHandler: (MainScreen) -> Unit = remember {
         { screen ->
             when (screen) {
-                MainScreen.Swipe -> viewModel.onAction(MainUiAction.SwipeClick)
-                MainScreen.Liked -> viewModel.onAction(MainUiAction.LikedClick)
-                MainScreen.Chat -> viewModel.onAction(MainUiAction.ChatClick)
-                MainScreen.Profile -> viewModel.onAction(MainUiAction.ProfileClick)
+                MainScreen.Swipe -> viewModel.onIntent(MainEvent.SwipeClick)
+                MainScreen.Liked -> viewModel.onIntent(MainEvent.LikedClick)
+                MainScreen.Chat -> viewModel.onIntent(MainEvent.ChatClick)
+                MainScreen.Profile -> viewModel.onIntent(MainEvent.ProfileClick)
             }
         }
     }
@@ -62,14 +62,14 @@ fun YfooApp(
 
     val isCompactScreen = windowSize == WindowSize.Compact
 
-    LaunchedEffect("key") { //TODO another name for key
-        viewModel.oneShotEvents
+    LaunchedEffect(Unit) {
+        viewModel.effect
             .onEach {
                 when (it) {
-                    MainOneShotEvent.NavigateToSwipe -> navController.navigateToSwipe()
-                    MainOneShotEvent.NavigateToLiked -> navController.navigateToLiked()
-                    MainOneShotEvent.NavigateToChat -> navController.navigateToChat()
-                    MainOneShotEvent.NavigateToProfile -> navController.navigateToProfile()
+                    MainEffect.NavigateToSwipe -> navController.navigateToSwipe()
+                    MainEffect.NavigateToLiked -> navController.navigateToLiked()
+                    MainEffect.NavigateToChat -> navController.navigateToChat()
+                    MainEffect.NavigateToProfile -> navController.navigateToProfile()
                 }
             }
             .collect()
@@ -81,7 +81,8 @@ fun YfooApp(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .weight(1f)) {
+                    .weight(1f)
+            ) {
                 if (!isCompactScreen) {
                     AppNavigationRail(
                         screens = mainScreens,
