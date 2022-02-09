@@ -38,7 +38,6 @@ enum class DismissValue {
     DismissedToStart
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun rememberCardFeedSwipeableState(
     initialValue: DismissValue = DismissValue.Default,
@@ -46,7 +45,6 @@ fun rememberCardFeedSwipeableState(
     confirmStateChange: (newValue: DismissValue) -> Boolean = { true }
 ) = rememberSwipeableState(initialValue, animationSpec, confirmStateChange)
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun CardFeedDismissibleItem(
     modifier: Modifier = Modifier,

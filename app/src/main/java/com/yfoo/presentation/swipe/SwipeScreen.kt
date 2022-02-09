@@ -36,7 +36,6 @@ fun SwipeScreen(
     SwipeScreen(state, viewModel.effect, viewModel::onIntent, windowSize, modifier)
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SwipeScreen(
     state: SwipeState,

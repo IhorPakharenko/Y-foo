@@ -49,6 +49,12 @@ android {
     }
 }
 
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        freeCompilerArgs += "-opt-in=androidx.compose.material.ExperimentalMaterialApi"
+    }
+}
+
 dependencies {
     implementation project(':core')
 

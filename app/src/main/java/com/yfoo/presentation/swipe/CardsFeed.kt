@@ -1,6 +1,5 @@
 package com.yfoo.presentation.swipe
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
@@ -37,7 +36,6 @@ import com.yfoo.domain.Card
 import com.yfoo.domain.ImageProvider
 import com.yfoo.presentation.utils.nameRes
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun CardsFeed(
     cards: List<Card>,
@@ -129,7 +127,6 @@ fun CardsFeed(
 
 private data class Deletion(val toDismissValue: DismissValue, val shouldAnimate: Boolean)
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun CardItem(
     card: Card,
@@ -323,7 +320,6 @@ private fun CardContent(
 
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun ReactionButton(
     onClick: () -> Unit,
