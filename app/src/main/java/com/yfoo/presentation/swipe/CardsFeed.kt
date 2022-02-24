@@ -1,11 +1,12 @@
 package com.yfoo.presentation.swipe
 
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -17,8 +18,10 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -27,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import coil.request.ImageResult
-import coil.size.Scale
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.placeholder
 import com.google.accompanist.placeholder.shimmer
@@ -35,7 +37,9 @@ import com.yfoo.R
 import com.yfoo.domain.Card
 import com.yfoo.domain.ImageProvider
 import com.yfoo.presentation.utils.nameRes
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun CardsFeed(
     cards: List<Card>,
@@ -43,118 +47,187 @@ fun CardsFeed(
     onDislike: (Card) -> Unit,
     onProviderClick: (Card) -> Unit,
     onImageClick: (Card) -> Unit,
-    isCardFadingEnabled: Boolean,
+    bottomRowColor: Color,
     errorPlaceholder: @Composable (Throwable) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var rememberedCards by remember { mutableStateOf(cards.toSet()) }
-    var cardsMarkedForDeletion by remember { mutableStateOf(emptyMap<Card, Deletion?>()) }
-
-    SideEffect {
-        //TODO what if cards are removed because of provider settings changes?
-        rememberedCards = rememberedCards + cards
-    }
-
     Box(modifier) {
-        rememberedCards.take(3).forEach { card ->
-            val swipeableState = rememberCardFeedSwipeableState(
-                confirmStateChange = { dismissValue ->
-                    if (dismissValue == DismissValue.DismissedToEnd) {
-                        onLike(card)
-                        cardsMarkedForDeletion =
-                            cardsMarkedForDeletion + (card to Deletion(
-                                shouldAnimate = false,
-                                toDismissValue = dismissValue,
-                            ))
-                    }
-                    if (dismissValue == DismissValue.DismissedToStart) {
-                        onDislike(card)
-                        cardsMarkedForDeletion =
-                            cardsMarkedForDeletion + (card to Deletion(
-                                shouldAnimate = false,
-                                toDismissValue = dismissValue,
-                            ))
-                    }
-                    true
-                }
+        val scope = rememberCoroutineScope()
+        SwipeableState
+        val swipeableState = rememberCardFeedSwipeableState(
+            animationSpec = TweenSpec<Float>(
+                durationMillis = 200,
+                easing = LinearEasing
             )
+        )
 
-            val cardDeletion = cardsMarkedForDeletion[card]
-            if (cardDeletion != null) {
-                LaunchedEffect(cardDeletion) {
-                    if (cardDeletion.shouldAnimate) {
-                        swipeableState.animateTo(cardDeletion.toDismissValue)
-                    } else {
-                        //TODO
-                    }
-                    rememberedCards = rememberedCards - card
-                    cardsMarkedForDeletion = cardsMarkedForDeletion - card
-                    //TODO item is not really deleted and still visible
-                }
+        var waitingForDeletion by remember { mutableStateOf(false) }
+
+        val backgroundCard = cards.getOrNull(1)
+        backgroundCard?.let { card ->
+            val dismissProgress = swipeableState.progress.fraction
+
+            val minProgress = 0.1f
+            val maxProgress = 0.3f
+            val minScale = 0.98f
+            val maxScale = 1f
+
+            val scale = when {
+                dismissProgress < minProgress -> minScale
+                dismissProgress > maxProgress -> maxScale
+                else -> dismissProgress.scale(
+                    oldMin = minProgress, oldMax = maxProgress,
+                    newMin = minScale, newMax = maxScale,
+                )
             }
 
-            swipeableState.offset // Recompose on offset change
+            val (imageCardState, setImageCardState) = remember {
+                mutableStateOf<ImageCardState>(ImageCardState.Loading)
+            }
 
             CardItem(
                 card = card,
-                onLike = {
+                onProviderClick = {},
+                onImageClick = {},
+                imageCardState = imageCardState,
+                setImageCardState = setImageCardState,
+                swipeableState = rememberCardFeedSwipeableState(confirmStateChange = { false }),
+                bottomRowColor = bottomRowColor,
+                errorPlaceholder = errorPlaceholder,
+                modifier = Modifier
+                    .scale(scale)
+                    .pointerInput(waitingForDeletion) {
+                        detectTapGestures(
+                            onPress = {
+                                if (waitingForDeletion) {
+                                    waitingForDeletion = false
+                                }
+                            }
+                        )
+                    }
+            )
+        }
+
+        val foregroundCard = cards.firstOrNull()
+        foregroundCard?.let { card ->
+            LaunchedEffect(swipeableState.currentValue) {
+                if (swipeableState.currentValue == DismissValue.DismissedToEnd) {
+//                    swipeableState.snapTo(DismissValue.Default)
+                    waitingForDeletion = true
                     onLike(card)
-                    cardsMarkedForDeletion =
-                        cardsMarkedForDeletion + (card to Deletion(
-                            shouldAnimate = true,
-                            toDismissValue = DismissValue.DismissedToEnd,
-                        ))
-                },
-                onDislike = {
+                }
+                if (swipeableState.currentValue == DismissValue.DismissedToStart) {
+//                    swipeableState.snapTo(DismissValue.Default)
+                    waitingForDeletion = true
                     onDislike(card)
-                    cardsMarkedForDeletion =
-                        cardsMarkedForDeletion + (card to Deletion(
-                            shouldAnimate = true,
-                            toDismissValue = DismissValue.DismissedToStart,
-                        ))
-                },
+                }
+            }
+
+//            LaunchedEffect(waitingForDeletion, card) {
+//                swipeableState.snapTo(DismissValue.Default)
+//            }
+            if (waitingForDeletion) {
+                LaunchedEffect(waitingForDeletion) {
+
+                }
+            }
+
+            LaunchedEffect(card) {
+                waitingForDeletion = false
+                swipeableState.snapTo(DismissValue.Default)
+            }
+
+            val (imageCardState, setImageCardState) = remember {
+                mutableStateOf<ImageCardState>(ImageCardState.Loading)
+            }
+
+//            transition.AnimatedVisibility(
+//                visible = { !it },
+//                exit = slideOutHorizontally { it / 2 },
+//                enter = EnterTransition.None
+//            ) {
+            CardItem(
+                card = card,
                 onProviderClick = onProviderClick,
                 onImageClick = onImageClick,
+                imageCardState = imageCardState,
+                setImageCardState = setImageCardState,
                 swipeableState = swipeableState,
-                dismissProgress = swipeableState.progress.fraction,
-                dismissValue = swipeableState.progress.to,
+                bottomRowColor = bottomRowColor,
                 errorPlaceholder = errorPlaceholder,
-                isCardFadingEnabled = isCardFadingEnabled,
             )
+//            }
+
+            if (imageCardState != ImageCardState.Loading) {
+                fun getProgressFor(dismissValue: DismissValue): Float {
+                    return if (swipeableState.progress.to == dismissValue) {
+                        swipeableState.progress.fraction
+                    } else {
+                        0f
+                    }
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(vertical = CardsFeedDefaults.ButtonVerticalPadding)
+                ) {
+                    ReactionButton(
+                        onClick = {
+                            scope.launch {
+                                swipeableState.animateTo(DismissValue.DismissedToStart)
+                            }
+                        },
+                        percentSelected = getProgressFor(DismissValue.DismissedToStart),
+                        primaryColor = Color.Red,
+                        secondaryColor = Color.White,
+                        modifier = Modifier.size(CardsFeedDefaults.ButtonSize)
+                    ) {
+                        DislikeIcon()
+                    }
+                    Spacer(Modifier.width(40.dp))
+                    ReactionButton(
+                        onClick = {
+                            scope.launch {
+                                swipeableState.animateTo(DismissValue.DismissedToEnd)
+                            }
+                        },
+                        percentSelected = getProgressFor(DismissValue.DismissedToEnd),
+                        primaryColor = Color.Green,
+                        secondaryColor = Color.White,
+                        modifier = Modifier.size(CardsFeedDefaults.ButtonSize)
+                    ) {
+                        LikeIcon()
+                    }
+                }
+            }
         }
     }
 }
 
-private data class Deletion(val toDismissValue: DismissValue, val shouldAnimate: Boolean)
+private object CardsFeedDefaults {
+    val ButtonSize = 56.dp
+    val ButtonVerticalPadding = 8.dp
+}
 
 @Composable
 private fun CardItem(
     card: Card,
-    onLike: (Card) -> Unit,
-    onDislike: (Card) -> Unit,
     onProviderClick: (Card) -> Unit,
     onImageClick: (Card) -> Unit,
+    imageCardState: ImageCardState,
+    setImageCardState: (ImageCardState) -> Unit,
     swipeableState: SwipeableState<DismissValue>,
-    dismissProgress: Float,
-    dismissValue: DismissValue,
+    bottomRowColor: Color,
     errorPlaceholder: @Composable (Throwable) -> Unit,
     modifier: Modifier = Modifier,
-    isCardFadingEnabled: Boolean = false,
 ) {
-    var mutableState: ImageCardState by remember { mutableStateOf(ImageCardState.Loading) }
-    val state = mutableState
-
-    CardFeedDismissibleItem(
+    //TODO can replace with SwipeToDismiss if not going to change default animSpec
+    YfooDismissible(
         modifier = modifier.fillMaxSize(),
         state = swipeableState,
-        alpha = { progress, toDismissValue ->
-            if (isCardFadingEnabled && toDismissValue != DismissValue.Default && progress > 0.5f) {
-                1 - progress
-            } else {
-                1f
-            }
-        },
-        enabled = state != ImageCardState.Loading,
+        enabled = imageCardState != ImageCardState.Loading,
     ) {
         val cardShape = MaterialTheme.shapes.medium
 
@@ -163,31 +236,26 @@ private fun CardItem(
             modifier = modifier
                 .fillMaxSize()
                 .placeholder(
-                    visible = state == ImageCardState.Loading,
+                    visible = imageCardState == ImageCardState.Loading,
                     color = Color.LightGray,
                     shape = cardShape,
                     highlight = PlaceholderHighlight.shimmer(Color.White),
                 )
         ) {
-            if (state is ImageCardState.Error) {
-                errorPlaceholder(state.throwable)
+            if (imageCardState is ImageCardState.Error) {
+                errorPlaceholder(imageCardState.throwable)
             } else {
                 CardContent(
                     card = card,
-                    onLike = onLike,
-                    onDislike = onDislike,
                     onProviderClick = onProviderClick,
                     onImageClick = onImageClick,
                     onImageLoadingSuccess = { _, _ ->
-                        mutableState = ImageCardState.Success
+                        setImageCardState(ImageCardState.Success)
                     },
                     onImageLoadingError = { _, throwable ->
-                        mutableState = ImageCardState.Error(throwable)
+                        setImageCardState(ImageCardState.Error(throwable))
                     },
-                    dismissProgress = dismissProgress,
-                    dismissValue = dismissValue,
-                    enabled = state != ImageCardState.Loading,
-                    bottomRowColor = Color.Black,
+                    bottomRowColor = bottomRowColor,
                 )
             }
         }
@@ -203,26 +271,22 @@ private sealed class ImageCardState {
 @Composable
 private fun CardContent(
     card: Card,
-    onLike: (Card) -> Unit,
-    onDislike: (Card) -> Unit,
     onProviderClick: (Card) -> Unit,
     onImageClick: (Card) -> Unit,
     onImageLoadingSuccess: (ImageRequest, ImageResult.Metadata) -> Unit,
     onImageLoadingError: (ImageRequest, Throwable) -> Unit,
-    dismissProgress: Float,
-    dismissValue: DismissValue,
-    enabled: Boolean,
     bottomRowColor: Color,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier) {
-        val buttonSize = 56.dp
-        val buttonRowBottomPadding = 8.dp
-
+    Box(
+        modifier
+            .background(bottomRowColor)
+            .padding(bottom = CardsFeedDefaults.ButtonSize + CardsFeedDefaults.ButtonVerticalPadding)
+    ) {
         Image(
             painter = rememberImagePainter(data = card.source.value) {
-                scale(Scale.FILL) //TODO do we need it
                 listener(
+                    onStart = {},
                     onSuccess = onImageLoadingSuccess,
                     onError = onImageLoadingError,
                 )
@@ -236,7 +300,6 @@ private fun CardContent(
             ),
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .padding(bottom = buttonSize + buttonRowBottomPadding)
                 .fillMaxSize()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -265,10 +328,13 @@ private fun CardContent(
                         start = providerNameStart,
                         end = providerNameEnd
                     )
+                    append('\n')
+                    append(card.source.value)
                 },
                 //TODO enlarge clickable space
                 onClick = { onProviderClick(card) },
-                style = MaterialTheme.typography.h6,
+                style = MaterialTheme.typography.h6.copy(Color.White),
+                //TODO set a tiny offset to hide the white line appearing on rotation
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
@@ -278,43 +344,6 @@ private fun CardContent(
                     )
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             )
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(bottomRowColor)
-                    .padding(bottom = buttonRowBottomPadding)
-            ) {
-                ReactionButton(
-                    onClick = { onDislike(card) },
-                    percentSelected = if (dismissValue == DismissValue.DismissedToStart) {
-                        dismissProgress
-                    } else {
-                        0f
-                    },
-                    primaryColor = Color.Red,
-                    secondaryColor = Color.White,
-                    enabled = enabled,
-                    modifier = Modifier.size(buttonSize)
-                ) {
-                    DislikeIcon()
-                }
-                Spacer(Modifier.width(48.dp))
-                ReactionButton(
-                    onClick = { onLike(card) },
-                    percentSelected = if (dismissValue == DismissValue.DismissedToEnd) {
-                        dismissProgress
-                    } else {
-                        0f
-                    },
-                    primaryColor = Color.Green,
-                    secondaryColor = Color.White,
-                    enabled = enabled,
-                    modifier = Modifier.size(buttonSize)
-                ) {
-                    LikeIcon()
-                }
-            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.yfoo.presentation.swipe
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -12,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -124,6 +126,7 @@ fun SwipeScreen(
             ) {
                 Box(
                     Modifier
+                        .background(Color.LightGray)
                         .fillMaxSize()
                         .padding(scaffoldPadding)
                         .padding(horizontal = 8.dp, vertical = 12.dp)
@@ -132,7 +135,6 @@ fun SwipeScreen(
                         is SwipeState.Content.Cards -> {
                             val maxCardSizePercent =
                                 if (windowSize == WindowSize.Compact) 1f else 0.8f
-                            val isCardFadingEnabled = windowSize == WindowSize.Expanded
 
                             CardsFeed(
                                 cards = state.content.value,
@@ -140,7 +142,7 @@ fun SwipeScreen(
                                 onDislike = { onIntent(SwipeIntent.Dislike(it)) },
                                 onProviderClick = { onIntent(SwipeIntent.ViewProvider(it)) },
                                 onImageClick = { onIntent(SwipeIntent.ViewImage(it)) },
-                                isCardFadingEnabled = isCardFadingEnabled,
+                                bottomRowColor = Color.Black,
                                 errorPlaceholder = { SwipeScreenError(it) },
                                 modifier = Modifier
                                     .fillMaxSize(maxCardSizePercent)
