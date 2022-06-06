@@ -1,7 +1,10 @@
 package com.yfoo.presentation.swipe
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,6 +40,7 @@ import com.yfoo.R
 import com.yfoo.domain.Card
 import com.yfoo.domain.ImageProvider
 import com.yfoo.presentation.utils.nameRes
+import com.yfoo.presentation.utils.scale
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -53,9 +57,8 @@ fun CardsFeed(
 ) {
     Box(modifier) {
         val scope = rememberCoroutineScope()
-        SwipeableState
-        val swipeableState = rememberCardFeedSwipeableState(
-            animationSpec = TweenSpec<Float>(
+        val swipeableState = rememberYfooDismissibleState(
+            dismissAnimationSpec = TweenSpec(
                 durationMillis = 200,
                 easing = LinearEasing
             )
@@ -91,7 +94,7 @@ fun CardsFeed(
                 onImageClick = {},
                 imageCardState = imageCardState,
                 setImageCardState = setImageCardState,
-                swipeableState = rememberCardFeedSwipeableState(confirmStateChange = { false }),
+                swipeableState = rememberYfooDismissibleState(),
                 bottomRowColor = bottomRowColor,
                 errorPlaceholder = errorPlaceholder,
                 modifier = Modifier
@@ -109,6 +112,7 @@ fun CardsFeed(
         }
 
         val foregroundCard = cards.firstOrNull()
+//        val foregroundCard = null
         foregroundCard?.let { card ->
             LaunchedEffect(swipeableState.currentValue) {
                 if (swipeableState.currentValue == DismissValue.DismissedToEnd) {
@@ -218,7 +222,7 @@ private fun CardItem(
     onImageClick: (Card) -> Unit,
     imageCardState: ImageCardState,
     setImageCardState: (ImageCardState) -> Unit,
-    swipeableState: SwipeableState<DismissValue>,
+    swipeableState: YfooDismissibleState,
     bottomRowColor: Color,
     errorPlaceholder: @Composable (Throwable) -> Unit,
     modifier: Modifier = Modifier,
